@@ -3,9 +3,11 @@ package com.yurisolom.barcode_generator.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -16,6 +18,11 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage).findFirst().orElse("");
         return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), errorMessage));
     }
+    
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<ErrorResponse> maxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+		return ResponseEntity.badRequest().body(new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), ex.getMessage()));
+	}
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ErrorResponse> handleAppExceptions(AppException ex) {
@@ -28,4 +35,9 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.toString(), ex.getMessage()));
     }
 
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(new ErrorResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE.toString(), ex.getMessage()));
+    }
 }
